@@ -7,3 +7,7 @@ WINDOW = {
     HEIGHT = 288
   }
 }
+
+-- function love.conf(t)
+--   t.console = true
+-- end

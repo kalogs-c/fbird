@@ -1,6 +1,6 @@
-require 'config'
-
-local Bird = require 'entities.Bird'
+require 'conf'
+require 'entities.Bird'
+require 'entities.Pipe'
 
 local push = require 'vendor.push'
 
@@ -17,7 +17,11 @@ local ground = {
   scroll_speed = 60,
 }
 
-local bird = Bird()
+local bird = Bird.new()
+local pipe_manager = {
+  pipes = {},
+  timer = 0
+}
 
 function love.load()
   love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -34,6 +38,8 @@ function love.load()
       resizable = true
     }
   )
+
+  love.keyboard.keysPressed = {}
 end
 
 function love.resize(w, h)
@@ -44,20 +50,48 @@ function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
     end
+
+    love.keyboard.keysPressed[key] = true
+end
+
+function love.keyboard.wasPressed(key)
+  return love.keyboard.keysPressed[key]
 end
 
 function love.update(dt)
   background.scroll = (background.scroll + background.scroll_speed * dt) % background.loopingPoint
   ground.scroll = (ground.scroll + ground.scroll_speed * dt) % WINDOW.VIRTUAL.HEIGHT
+
+  pipe_manager.timer = pipe_manager.timer + dt
+  if pipe_manager.timer > 2 then
+    table.insert(pipe_manager.pipes, Pipe.new())
+    pipe_manager.timer = 0
+  end
+
+  bird:update(dt)
+  for k, pipe in pairs(pipe_manager.pipes) do
+    pipe:update(dt)
+
+    if pipe.x < -pipe.width then
+      table.remove(pipe_manager.pipes, k)
+    end
+  end
+
+  love.keyboard.keysPressed = {}
 end
 
 function love.draw()
     push:start()
 
     love.graphics.draw(background.image, -background.scroll, 0)
+
+    bird:draw()
+    for _, pipe in pairs(pipe_manager.pipes) do
+      pipe:draw()
+    end
+
     love.graphics.draw(ground.image, -ground.scroll, WINDOW.VIRTUAL.HEIGHT - 16)
 
-    bird:render()
 
     push:finish()
 end
