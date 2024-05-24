@@ -8,6 +8,6 @@ WINDOW = {
   }
 }
 
--- function love.conf(t)
---   t.console = true
--- end
+function love.conf(t)
+  t.console = true
+end
